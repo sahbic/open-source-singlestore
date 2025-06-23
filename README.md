@@ -1,1 +1,1 @@
-# test-s2
+# Exemples d'intégration Open Source avec Singlestore
