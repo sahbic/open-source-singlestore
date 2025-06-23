@@ -1,0 +1,99 @@
+---
+title: "R Notebook S2"
+output: html_notebook
+---
+
+Chargement de la librairie
+
+```{r}
+library(RJDBC)
+```
+
+
+Téléchargement du driver
+
+```{r}
+# URL of the JDBC driver file
+driver_url <- "https://repo1.maven.org/maven2/com/singlestore/singlestore-jdbc-client/1.2.1/singlestore-jdbc-client-1.2.1.jar"
+
+# Set the JDBC driver class name
+driver <- "com.singlestore.jdbc.Driver"
+
+# Local directory to save the driver file
+local_dir <- "jars"
+dir.create(local_dir, showWarnings = FALSE, recursive = TRUE)
+
+# Check if the driver file already exists
+driver_file <- file.path(
+    local_dir,
+    "singlestore-jdbc-client-1.2.1.jar"
+)
+
+if (!file.exists(driver_file)) {
+    # Download the JDBC driver file if it doesn't exist
+    download.file(
+        driver_url,
+        destfile = driver_file,
+        mode = "wb",
+        quiet = TRUE
+    )
+}
+
+# Check if the driver file has been downloaded successfully
+if (file.exists(driver_file)) {
+    print("Driver file downloaded successfully")
+} else {
+    print("Failed to download the driver file")
+}
+```
+Variables d'environnments
+
+```{r}
+readRenviron(".Renviron")
+host <- Sys.getenv("HOST_DML")
+port <- 3306
+database <- "tpch"
+user <- Sys.getenv("USERDB")
+password <- Sys.getenv("PASSDB")
+
+url <- paste0("jdbc:singlestore://", host, ":", port, "/", database)
+```
+
+Connexion à la base de données
+
+```{r}
+conn <- dbConnect(
+    drv = JDBC(driver, driver_file),
+    url = url,
+    user = user,
+    password = password
+)
+```
+
+Lancement de la requete SQL
+
+```{r}
+result <- dbGetQuery(conn, "SELECT COUNT(*) FROM lineitem")
+print(result)
+```
+
+Jointure entre deux tables dans deux bases de données différentes
+
+```{r}
+query <- "
+    SELECT 
+        o.o_orderkey,
+        o.o_orderdate,
+        o.o_custkey,
+        c.c_custkey,
+        c.c_name
+    FROM dtm.customer_scb AS c
+    LEFT JOIN tpch.orders AS o
+      ON o.o_custkey = c.c_custkey
+    LIMIT 10
+"
+
+df <- dbGetQuery(conn, query)
+
+print(df)
+```

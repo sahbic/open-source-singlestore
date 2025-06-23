@@ -1,0 +1,5 @@
+singlestoredb==1.12.4
+sqlalchemy-singlestoredb==1.1.1
+ibis-singlestoredb==0.4.3
+python-dotenv==1.1.0
+pandas==2.2.3
