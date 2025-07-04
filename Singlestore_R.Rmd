@@ -77,7 +77,7 @@ result <- dbGetQuery(conn, "SELECT COUNT(*) FROM lineitem")
 print(result)
 ```
 
-Jointure entre deux tables dans deux bases de données différentes
+Jointure entre deux tables dans deux bases de données différentes:
 
 ```{r}
 query <- "
@@ -95,5 +95,29 @@ query <- "
 
 df <- dbGetQuery(conn, query)
 
+print(df)
+```
+
+Exemple de création de table:
+
+```{r}
+dbSendUpdate(conn, "DROP TABLE IF EXISTS dtm.order_summary_r")
+
+create_query <- "
+CREATE TABLE dtm.order_summary_r AS
+SELECT 
+  YEAR(o_orderdate) AS order_year,
+  COUNT(*) AS order_count,
+  SUM(o_totalprice) AS total_spent
+FROM tpch.orders
+WHERE o_orderdate >= '1995-01-01'
+GROUP BY YEAR(o_orderdate)
+"
+
+dbSendUpdate(conn, create_query)
+```
+
+```{r}
+df <- dbGetQuery(conn, "SELECT * FROM dtm.order_summary_r")
 print(df)
 ```
